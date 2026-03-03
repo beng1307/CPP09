@@ -70,7 +70,8 @@ class BitcoinExchange
 
 		void	parse_input_line(const std::string &line);
 		void	parse_data_line(const std::string &line);
-
+		
+		void	output_results();
 
 	public:
 		
@@ -84,7 +85,6 @@ class BitcoinExchange
 		void	open_file(const std::string &filename);
 		void	read_input();
 		void	read_database();
-		void	output_results();
 	};
 
 #endif
