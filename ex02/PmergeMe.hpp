@@ -23,7 +23,7 @@ class PmergeMe
 		std::string	*input;
 		size_t		count;
 	
-		Vector		main_chain;
+		Vector		main_chain_vector;
 		Deque		main_chain_deque;
 		
 		PairVector	vector;
@@ -73,5 +73,7 @@ class PmergeMe
 		void		sort();
 		void		print_result();
 };
+
+	void		print_error(std::string message);
 
 #endif

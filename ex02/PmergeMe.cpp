@@ -8,13 +8,22 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Constructors and Destructor
 
-PmergeMe::PmergeMe(): vector(), vector_time(0.0), deque(), deque_time(0.0), straggler(0)
+PmergeMe::PmergeMe():
+	input(NULL), count(0),
+	main_chain_vector(), main_chain_deque(),
+	vector(), vector_time(0.0),
+	deque(), deque_time(0.0),
+	straggler(0)
 {
 	return ;
 }
 
 PmergeMe::PmergeMe(char **av):
-	input(NULL), count(0), vector(), vector_time(0.0), deque(), deque_time(0.0), straggler(0)
+	input(NULL), count(0),
+	main_chain_vector(), main_chain_deque(),
+	vector(), vector_time(0.0),
+	deque(), deque_time(0.0),
+	straggler(0)
 {
 	for (size_t index = 1; av[index] != NULL; index++)
 		count++;
@@ -26,8 +35,8 @@ PmergeMe::PmergeMe(char **av):
 }
 
 PmergeMe::PmergeMe(const PmergeMe &other):
-	input(NULL), count(other.count), main_chain(other.main_chain),
-	main_chain_deque(other.main_chain_deque),
+	input(NULL), count(other.count),
+	main_chain_vector(other.main_chain_vector), main_chain_deque(other.main_chain_deque),
 	vector(other.vector), vector_time(other.vector_time),
 	deque(other.deque), deque_time(other.deque_time),
 	straggler(other.straggler)
@@ -42,16 +51,15 @@ PmergeMe &PmergeMe::operator=(const PmergeMe &other)
 	if (this != &other)
 	{
 		delete[] input;
-		count = other.count;
-		input = new std::string[count];
-		for (size_t index = 0; index < count; index++)
+		input = new std::string[other.count];
+		for (size_t index = 0; index < other.count; index++)
 			input[index] = other.input[index];
-
-		this->vector = other.vector;
-		this->deque = other.deque;
-		this->main_chain = other.main_chain;
+		this->count = other.count;			
+		this->main_chain_vector = other.main_chain_vector;
 		this->main_chain_deque = other.main_chain_deque;
+		this->vector = other.vector;
 		this->vector_time = other.vector_time;
+		this->deque = other.deque;
 		this->deque_time = other.deque_time;
 		this->straggler = other.straggler;
 	}
@@ -78,10 +86,7 @@ void	PmergeMe::check_input()
 	for (size_t index = 0; index < count; index++)
 	{
 		if (input[index].find_first_not_of("0123456789") != std::string::npos)
-		{
-			std::cerr << "Error: Invalid input." << std::endl;
-			exit(1);
-		}
+			print_error("Invalid input.");
 	}
 }
 
@@ -90,20 +95,15 @@ void	PmergeMe::parse_input()
 	errno = 0;
 
 	if (!count)
-	{
-		std::cerr << "Error: No input." << std::endl;
-		exit(1);
-	}
+			print_error("No input.");
+
 
 	for (size_t index = 0; index < count - 1; index += 2)
 	{
 		int valueI = std::strtol(input[index].c_str(), NULL, 10);
 		int valueII = std::strtol(input[index + 1].c_str(), NULL, 10);
 		if (errno == ERANGE || valueI < 0 || valueII < 0)
-		{
-			std::cerr << "Error: Number out of range." << std::endl;
-			exit(1);
-		}
+			print_error("Number out of range.");
 		
 		vector.push_back(std::make_pair(valueI, valueII));
 		deque.push_back(std::make_pair(valueI, valueII));
@@ -112,10 +112,7 @@ void	PmergeMe::parse_input()
 	{
 		straggler = std::strtol(input[count - 1].c_str(), NULL, 10);
 		if (errno == ERANGE || straggler < 0)
-		{
-			std::cerr << "Error: Number out of range." << std::endl;
-			exit(1);
-		}
+			print_error("Number out of range.");
 	}
 }
 
@@ -144,7 +141,7 @@ void	PmergeMe::sort_vector()
 {
 	sort_pairs_vector();
 
-	main_chain = create_main_chain_vector();
+	main_chain_vector = create_main_chain_vector();
 
 	binary_insertion_vector();
 }
@@ -204,13 +201,13 @@ void	PmergeMe::binary_insertion_vector()
 {
 	for (size_t index = 0; index < vector.size(); index++)
 	{
-		Vector::iterator it = std::lower_bound(main_chain.begin(), main_chain.end(), vector[index].first);
-		main_chain.insert(it, vector[index].first);
+		Vector::iterator it = std::lower_bound(main_chain_vector.begin(), main_chain_vector.end(), vector[index].first);
+		main_chain_vector.insert(it, vector[index].first);
 	}
 	if (count % 2)
 	{
-		Vector::iterator it = std::lower_bound(main_chain.begin(), main_chain.end(), straggler);
-		main_chain.insert(it, straggler);
+		Vector::iterator it = std::lower_bound(main_chain_vector.begin(), main_chain_vector.end(), straggler);
+		main_chain_vector.insert(it, straggler);
 	}
 }
 
@@ -300,19 +297,25 @@ void	PmergeMe::print_result()
 {
 	std::cout << "Before: ";
 	for (size_t index = 0; index < count; index++)
-		std::cout << input[index] << " ";
+	std::cout << input[index] << " ";
 	std::cout << std::endl;
-
+	
 	std::cout << "After: ";
-	for (size_t index = 0; index < main_chain.size(); index++)
-		std::cout << main_chain[index] << " ";
+	for (size_t index = 0; index < main_chain_vector.size(); index++)
+	std::cout << main_chain_vector[index] << " ";
 	std::cout << std::endl;
-
-
+	
+	
 	std::cout << "Time to process a range of " << count << " elements with std::vector : "
-		<< vector_time << " us" << std::endl;
-
+	<< vector_time << " us" << std::endl;
+	
 	std::cout << "Time to process a range of " << count << " elements with std::deque : "
-		<< deque_time << " us" << std::endl;
+	<< deque_time << " us" << std::endl;
+	
+}
 
+void	print_error(std::string message)
+{
+	std::cerr << "Error: " << message << std::endl;
+	exit(1);
 }
