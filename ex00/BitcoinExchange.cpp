@@ -6,7 +6,7 @@
 
 
 ///////////////////////////////////////////////////////////////////////////////
-//	Constructors, destructor and assignment operator
+//	Canonical form
 
 BitcoinExchange::BitcoinExchange()
 {
