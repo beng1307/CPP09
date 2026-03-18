@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <cerrno>
 #include <algorithm>
+#include <climits>
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -93,16 +94,18 @@ void	PmergeMe::check_input()
 void	PmergeMe::parse_input()
 {
 	errno = 0;
-
+	
 	if (!count)
-			print_error("No input.");
-
-
+		print_error("No input.");
+	
 	for (size_t index = 0; index < count - 1; index += 2)
 	{
-		int valueI = std::strtol(input[index].c_str(), NULL, 10);
-		int valueII = std::strtol(input[index + 1].c_str(), NULL, 10);
-		if (errno == ERANGE || valueI < 0 || valueII < 0)
+		long valueI = std::strtol(input[index].c_str(), NULL, 10);
+		if (errno == ERANGE || valueI < 0 || valueI > INT_MAX)
+			print_error("Number out of range.");
+
+		long valueII = std::strtol(input[index + 1].c_str(), NULL, 10);
+		if (errno == ERANGE || valueII < 0 || valueII > INT_MAX)
 			print_error("Number out of range.");
 		
 		vector.push_back(std::make_pair(valueI, valueII));
