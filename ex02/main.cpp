@@ -12,8 +12,5 @@ int	main(int ac, char **av)
 
 	pmergeMe.handle_input();
 	pmergeMe.sort();
-	// sort vector
-	// sort deque
 	pmergeMe.print_result();
-	// print time
 }
