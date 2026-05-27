@@ -71,7 +71,7 @@ void	BitcoinExchange::read_database()
 	std::string	line;
 	
 	while (std::getline(file, line))
-	parse_data_line(line);
+		parse_data_line(line);
 }
 
 void	BitcoinExchange::parse_data_line(const std::string &line)
@@ -132,6 +132,18 @@ void	BitcoinExchange::check_date(const std::string &line)
 
 	std::string	day = line.substr(8, 2);
 	if (day.find_first_not_of("0123456789") != std::string::npos)
+		throw BitcoinExchange::InvalidDateFormatException();
+
+	int	year_value = std::atoi(year.c_str());
+	int	month_value = std::atoi(month.c_str());
+	int	day_value = std::atoi(day.c_str());
+	int days_in_month[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+
+	if (year_value < 1 || year_value > 9999)
+		throw BitcoinExchange::InvalidDateFormatException();
+	if (month_value < 1 || month_value > 12)
+		throw BitcoinExchange::InvalidDateFormatException();
+	if (day_value < 1 || day_value > days_in_month[month_value - 1])
 		throw BitcoinExchange::InvalidDateFormatException();
 }
 

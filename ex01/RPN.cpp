@@ -43,26 +43,28 @@ void	RPN::calculate()
 		if (std::isspace(input[i]))
 			continue ;
 		if (std::isdigit(input[i]))
-			rpn.push(input[i] - '0');
+			rpn.push_back(input[i] - '0');
 		else if (is_operand(input[i]))
 		{
 			switch (input[i])
 			{
 				case '+':
 					last_two_numbers(a, b);
-					rpn.push(a + b);
+					rpn.push_back(a + b);
 					break ;
 				case '-':
 					last_two_numbers(a, b);
-					rpn.push(a - b);
+					rpn.push_back(a - b);
 					break ;
 				case '*':
 					last_two_numbers(a, b);
-					rpn.push(a * b);
+					rpn.push_back(a * b);
 					break ;
 				case '/':
 					last_two_numbers(a, b);
-					rpn.push(a / b);
+					if (b == 0)
+						error();
+					rpn.push_back(a / b);
 					break ;
 			}
 		}
@@ -89,10 +91,10 @@ void	RPN::last_two_numbers(int &a, int &b)
 {
 	if (rpn.size() < 2)
 		error();
-	b = rpn.top();
-	rpn.pop();
-	a = rpn.top();
-	rpn.pop();
+	b = rpn.back();
+	rpn.pop_back();
+	a = rpn.back();
+	rpn.pop_back();
 }
 
 
@@ -102,8 +104,8 @@ void	RPN::last_two_numbers(int &a, int &b)
 void	RPN::output_result()
 {
 	if (rpn.size() != 1)
-	error();
-	std::cout << rpn.top() << std::endl;
+		error();
+	std::cout << rpn.back() << std::endl;
 }
 
 

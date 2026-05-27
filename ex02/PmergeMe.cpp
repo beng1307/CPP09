@@ -4,47 +4,49 @@
 #include <cerrno>
 #include <algorithm>
 #include <climits>
+#include <iterator>
+#include <vector>
 
 
 ///////////////////////////////////////////////////////////////////////////////
 // Constructors and Destructor
 
 PmergeMe::PmergeMe():
-	input(NULL), count(0),
-	main_chain_vector(), main_chain_deque(),
-	vector(), vector_time(0.0),
-	deque(), deque_time(0.0),
-	straggler(0)
+input(NULL), count(0),
+main_chain_vector(), main_chain_deque(),
+vector(), vector_time(0.0),
+deque(), deque_time(0.0),
+straggler(0)
 {
 	return ;
 }
 
 PmergeMe::PmergeMe(char **av):
-	input(NULL), count(0),
-	main_chain_vector(), main_chain_deque(),
-	vector(), vector_time(0.0),
-	deque(), deque_time(0.0),
-	straggler(0)
+input(NULL), count(0),
+main_chain_vector(), main_chain_deque(),
+vector(), vector_time(0.0),
+deque(), deque_time(0.0),
+straggler(0)
 {
 	for (size_t index = 1; av[index] != NULL; index++)
-		count++;
-
+	count++;
+	
 	input = new std::string[count];
-
+	
 	for (size_t index = 0; 	index < count; index++)
-		input[index] = av[index + 1];
+	input[index] = av[index + 1];
 }
 
 PmergeMe::PmergeMe(const PmergeMe &other):
-	input(NULL), count(other.count),
-	main_chain_vector(other.main_chain_vector), main_chain_deque(other.main_chain_deque),
-	vector(other.vector), vector_time(other.vector_time),
-	deque(other.deque), deque_time(other.deque_time),
-	straggler(other.straggler)
+input(NULL), count(other.count),
+main_chain_vector(other.main_chain_vector), main_chain_deque(other.main_chain_deque),
+vector(other.vector), vector_time(other.vector_time),
+deque(other.deque), deque_time(other.deque_time),
+straggler(other.straggler)
 {
 	input = new std::string[count];
 	for (size_t index = 0; index < count; index++)
-		input[index] = other.input[index];
+	input[index] = other.input[index];
 }
 
 PmergeMe &PmergeMe::operator=(const PmergeMe &other)
@@ -54,7 +56,7 @@ PmergeMe &PmergeMe::operator=(const PmergeMe &other)
 		delete[] input;
 		input = new std::string[other.count];
 		for (size_t index = 0; index < other.count; index++)
-			input[index] = other.input[index];
+		input[index] = other.input[index];
 		this->count = other.count;			
 		this->main_chain_vector = other.main_chain_vector;
 		this->main_chain_deque = other.main_chain_deque;
@@ -74,7 +76,7 @@ PmergeMe::~PmergeMe()
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Member Functions
+// Handling Input
 
 void	PmergeMe::handle_input()
 {
@@ -87,53 +89,168 @@ void	PmergeMe::check_input()
 	for (size_t index = 0; index < count; index++)
 	{
 		if (input[index].find_first_not_of("0123456789") != std::string::npos)
-			print_error("Invalid input.");
+		print_error("Invalid input.");
 	}
 }
 
 void	PmergeMe::parse_input()
 {
-	errno = 0;
-	
 	if (!count)
-		print_error("No input.");
+	print_error("No input.");
 	
 	for (size_t index = 0; index < count - 1; index += 2)
 	{
+		errno = 0;
 		long valueI = std::strtol(input[index].c_str(), NULL, 10);
 		if (errno == ERANGE || valueI < 0 || valueI > INT_MAX)
-			print_error("Number out of range.");
-
+		print_error("Number out of range.");
+		
+		errno = 0;
 		long valueII = std::strtol(input[index + 1].c_str(), NULL, 10);
 		if (errno == ERANGE || valueII < 0 || valueII > INT_MAX)
-			print_error("Number out of range.");
+		print_error("Number out of range.");
 		
 		vector.push_back(std::make_pair(valueI, valueII));
 		deque.push_back(std::make_pair(valueI, valueII));
 	}
 	if (count % 2)
 	{
+		errno = 0;
 		straggler = std::strtol(input[count - 1].c_str(), NULL, 10);
-		if (errno == ERANGE || straggler < 0)
-			print_error("Number out of range.");
+		if (errno == ERANGE || straggler < 0 || straggler > INT_MAX)
+		print_error("Number out of range.");
 	}
 }
 
-
 ///////////////////////////////////////////////////////////////////////////////
-// Sorting
+// Helpers for Sorting
 
-void	PmergeMe::sort()
+static bool	compare_pairs_by_second(const IntPair &left, const IntPair &right)
 {
-	clock_t start = clock();
-	sort_vector();
-	clock_t end = clock();
-	vector_time = static_cast<double>(end - start) * 1000 / CLOCKS_PER_SEC;
+	if (left.second == right.second)
+		return (left.first < right.first);
 
-	start = clock();
-	sort_deque();
-	end = clock();
-	deque_time = static_cast<double>(end - start) * 1000 / CLOCKS_PER_SEC;
+	return (left.second < right.second);
+}
+
+template <typename PairContainer>
+static void	normalize_and_sort_pairs(PairContainer &pairs)
+{
+	for (size_t index = 0; index < pairs.size(); ++index)
+	{
+		if (pairs[index].first > pairs[index].second)
+			std::swap(pairs[index].first, pairs[index].second);
+	}
+
+	std::sort(pairs.begin(), pairs.end(), compare_pairs_by_second);
+}
+
+template <typename MainContainer, typename PairContainer>
+static MainContainer	create_main_chain_from_pairs(const PairContainer &pairs)
+{
+	MainContainer main_chain;
+
+	if (pairs.empty())
+		return (main_chain);
+
+	main_chain.push_back(pairs[0].first);
+	for (size_t index = 0; index < pairs.size(); ++index)
+		main_chain.push_back(pairs[index].second);
+
+	return (main_chain);
+}
+
+std::vector<size_t>	PmergeMe::get_jacobsthal_order(size_t pending_count)
+{
+	std::vector<size_t> order;
+	size_t prev = 1;
+	size_t next = 0;
+	size_t jacob_prev = 1;
+	size_t jacob = 3;
+	
+	if (pending_count == 0)
+		return (order);
+	
+	order.push_back(1);
+	while (jacob <= pending_count)
+	{
+		for (size_t index = jacob; index > prev; index--)
+			order.push_back(index);
+		
+		prev = jacob;
+		next = jacob + (2 * jacob_prev);
+		jacob_prev = jacob;
+		jacob = next;
+	}
+	for (size_t index = pending_count; index > prev; index--)
+		order.push_back(index);
+	
+	return (order);
+}
+
+static void	shift_partner_positions(std::vector<size_t> &partner_positions, size_t insert_position)
+{
+	for (size_t pos_index = 0; pos_index < partner_positions.size(); ++pos_index)
+	{
+		if (partner_positions[pos_index] >= insert_position)
+			++partner_positions[pos_index];
+	}
+}
+
+template <typename MainContainer, typename PairContainer>
+static void	binary_insert_pending(MainContainer &main_chain,
+	const PairContainer &pairs, size_t count, int straggler,
+	const std::vector<size_t> &order)
+	{
+		if (pairs.size() < 2)
+		{
+			if (count % 2)
+			{
+				typename MainContainer::iterator it = std::lower_bound(main_chain.begin(), main_chain.end(), straggler);
+				main_chain.insert(it, straggler);
+			}
+
+			return ;
+		}
+		
+		std::vector<size_t> partner_positions(pairs.size());
+		for (size_t index = 0; index < pairs.size(); ++index)
+			partner_positions[index] = index + 1;
+		
+		for (size_t step = 0; step < order.size(); ++step)
+		{
+			size_t pair_index = order[step];
+			size_t partner_pos = partner_positions[pair_index];
+			typename MainContainer::iterator bound = main_chain.begin() + partner_pos;
+			typename MainContainer::iterator it = std::lower_bound(main_chain.begin(), bound, pairs[pair_index].first);
+			size_t insert_pos = std::distance(main_chain.begin(), it);
+			
+			main_chain.insert(it, pairs[pair_index].first);
+
+			shift_partner_positions(partner_positions, insert_pos);
+		}
+
+		if (count % 2)
+		{
+			typename MainContainer::iterator it = std::lower_bound(main_chain.begin(), main_chain.end(), straggler);
+			main_chain.insert(it, straggler);
+		}
+	}
+	
+	///////////////////////////////////////////////////////////////////////////////
+	// Sorting
+	
+	void	PmergeMe::sort()
+	{
+		clock_t start = clock();
+		sort_vector();
+		clock_t end = clock();
+		vector_time = static_cast<double>(end - start) * 1000000.0 / CLOCKS_PER_SEC;
+		
+		start = clock();
+		sort_deque();
+		end = clock();
+		deque_time = static_cast<double>(end - start) * 1000000.0 / CLOCKS_PER_SEC;
 }
 
 
@@ -151,67 +268,18 @@ void	PmergeMe::sort_vector()
 
 void	PmergeMe::sort_pairs_vector()
 {
-	for (size_t index = 0; index < vector.size(); index++)
-	{
-		if (vector[index].first > vector[index].second)
-			std::swap(vector[index].first, vector[index].second);
-	}
+	normalize_and_sort_pairs(vector);
 }
 
 Vector	PmergeMe::create_main_chain_vector()
 {
-	Vector new_main_chain;
-
-	for (size_t index = 0; index < vector.size(); index++)
-		new_main_chain.push_back(vector[index].second);
-
-	new_main_chain = sort_main_chain_vector(new_main_chain);
-
-	return (new_main_chain);
-}
-
-Vector	PmergeMe::sort_main_chain_vector(Vector &main_chain)
-{
-	if (main_chain.size() < 2)
-		return (main_chain);
-
-	if (is_sorted_vector(main_chain))
-		return (main_chain);
-
-	for (size_t index = 0; index < main_chain.size() - 1; index++)
-	{
-		if (main_chain[index] > main_chain[index + 1])
-			std::swap(main_chain[index], main_chain[index + 1]);
-	}
-
-	return sort_main_chain_vector(main_chain);
-}
-
-bool	PmergeMe::is_sorted_vector(const Vector &vec)
-{
-	if (vec.size() < 2)
-		return (true);
-
-	for (size_t index = 0; index < vec.size() - 1; index++)
-	{
-		if (vec[index] > vec[index + 1])
-			return (false);
-	}
-	return (true);
+	return (create_main_chain_from_pairs<Vector>(vector));
 }
 
 void	PmergeMe::binary_insertion_vector()
 {
-	for (size_t index = 0; index < vector.size(); index++)
-	{
-		Vector::iterator it = std::lower_bound(main_chain_vector.begin(), main_chain_vector.end(), vector[index].first);
-		main_chain_vector.insert(it, vector[index].first);
-	}
-	if (count % 2)
-	{
-		Vector::iterator it = std::lower_bound(main_chain_vector.begin(), main_chain_vector.end(), straggler);
-		main_chain_vector.insert(it, straggler);
-	}
+	binary_insert_pending(main_chain_vector, vector, count, straggler,
+		get_jacobsthal_order(vector.size() - 1));
 }
 
 
@@ -229,67 +297,18 @@ void	PmergeMe::sort_deque()
 
 void	PmergeMe::sort_pairs_deque()
 {
-	for (size_t index = 0; index < deque.size(); index++)
-	{
-		if (deque[index].first > deque[index].second)
-			std::swap(deque[index].first, deque[index].second);
-	}
+	normalize_and_sort_pairs(deque);
 }
 
 Deque	PmergeMe::create_main_chain_deque()
 {
-	Deque newMainChain;
-
-	for (size_t index = 0; index < deque.size(); index++)
-		newMainChain.push_back(deque[index].second);
-
-	newMainChain = sort_main_chain_deque(newMainChain);
-
-	return (newMainChain);
-}
-
-Deque	PmergeMe::sort_main_chain_deque(Deque &mainChain)
-{
-	if (mainChain.size() < 2)
-		return (mainChain);
-
-	if (is_sorted_deque(mainChain))
-		return (mainChain);
-
-	for (size_t index = 0; index < mainChain.size() - 1; index++)
-	{
-		if (mainChain[index] > mainChain[index + 1])
-			std::swap(mainChain[index], mainChain[index + 1]);
-	}
-
-	return sort_main_chain_deque(mainChain);
-}
-
-bool	PmergeMe::is_sorted_deque(const Deque &deq)
-{
-	if (deq.size() < 2)
-		return (true);
-
-	for (size_t index = 0; index < deq.size() - 1; index++)
-	{
-		if (deq[index] > deq[index + 1])
-			return (false);
-	}
-	return (true);
+	return (create_main_chain_from_pairs<Deque>(deque));
 }
 
 void	PmergeMe::binary_insertion_deque()
 {
-	for (size_t index = 0; index < deque.size(); index++)
-	{
-		Deque::iterator it = std::lower_bound(main_chain_deque.begin(), main_chain_deque.end(), deque[index].first);
-		main_chain_deque.insert(it, deque[index].first);
-	}
-	if (count % 2)
-	{
-		Deque::iterator it = std::lower_bound(main_chain_deque.begin(), main_chain_deque.end(), straggler);
-		main_chain_deque.insert(it, straggler);
-	}
+	binary_insert_pending(main_chain_deque, deque, count, straggler,
+		get_jacobsthal_order(deque.size() - 1));
 }
 
 
@@ -300,12 +319,12 @@ void	PmergeMe::print_result()
 {
 	std::cout << "Before: ";
 	for (size_t index = 0; index < count; index++)
-	std::cout << input[index] << " ";
+		std::cout << input[index] << " ";
 	std::cout << std::endl;
 	
 	std::cout << "After: ";
 	for (size_t index = 0; index < main_chain_vector.size(); index++)
-	std::cout << main_chain_vector[index] << " ";
+		std::cout << main_chain_vector[index] << " ";
 	std::cout << std::endl;
 	
 	

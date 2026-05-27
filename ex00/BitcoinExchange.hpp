@@ -21,6 +21,7 @@ class BitcoinExchange
 		class NegativeValueException : public std::exception
 		{
 			public:
+
 				virtual const char	*what() const throw()
 				{
 					return "not a positive number.";
@@ -30,6 +31,7 @@ class BitcoinExchange
 		class BadInputException : public std::exception
 		{
 			private:
+
 				std::string	message;
 
 			public:
@@ -47,6 +49,7 @@ class BitcoinExchange
 		class TooLargeNumberException : public std::exception
 		{
 			public:
+
 				virtual const char	*what() const throw()
 				{
 					return "too large a number.";
@@ -56,6 +59,7 @@ class BitcoinExchange
 		class InvalidDateFormatException : public std::exception
 		{
 			public:
+
 				virtual const char	*what() const throw()
 				{
 					return "invalid date format.";

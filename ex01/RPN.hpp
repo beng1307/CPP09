@@ -1,14 +1,14 @@
 #ifndef RPN_HPP
 # define RPN_HPP
 
-#include <stack>
+#include <list>
 #include <string>
 
 class	RPN
 {
 	private:
 
-		std::stack<int> rpn;
+		std::list<int> 	rpn;
 		std::string		input;
 		
 		void	last_two_numbers(int &a, int &b);

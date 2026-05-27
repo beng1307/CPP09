@@ -1,9 +1,9 @@
 COMPILE = c++ -g -Wall -Wextra -Werror -std=c++98 -fPIE
-NAME = PmergeMe
-SRCS = main.cpp PmergeMe.cpp
+NAME = RPN
+SRCS = main.cpp RPN.cpp
 OBJS_FOLDER = obj
 OBJS = $(SRCS:%.cpp=$(OBJS_FOLDER)/%.o)
-HEADERS = PmergeMe.hpp
+HEADERS = RPN.hpp
 		
 $(NAME): $(OBJS)
 	$(COMPILE) $(OBJS) -o $(NAME)	

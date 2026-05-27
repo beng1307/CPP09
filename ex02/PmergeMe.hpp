@@ -38,14 +38,18 @@ class PmergeMe
 		
 		void		check_input();
 		void		parse_input();
-	
+
+	//Helper
+
+		std::vector<size_t>	get_jacobsthal_order(size_t pending_count);
+
 	// Vector Sorting
 
 		void		sort_pairs_vector();
 		void		sort_vector();
 		Vector		create_main_chain_vector();
 		Vector		sort_main_chain_vector(Vector &main_chain);
-		bool		is_sorted_vector(const Vector &vec);	
+		bool		is_sorted_vector(const Vector &vec);
 		void 		binary_insertion_vector();
 	
 	// Deque Sorting
