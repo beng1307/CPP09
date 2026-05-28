@@ -1,4 +1,4 @@
-COMPILE = c++ -g -Wall -Wextra -Werror -std=c++98 -fPIE
+COMPILE = c++ -Wall -Wextra -Werror -std=c++98
 NAME = RPN
 SRCS = main.cpp RPN.cpp
 OBJS_FOLDER = obj
