@@ -6,7 +6,7 @@
 /*   By: bgretic <bgretic@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/28 18:45:58 by bgretic           #+#    #+#             */
-/*   Updated: 2026/05/28 18:45:59 by bgretic          ###   ########.fr       */
+/*   Updated: 2026/05/28 19:27:56 by bgretic          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,7 +83,12 @@ void	BitcoinExchange::read_database()
 	std::string	line;
 	
 	while (std::getline(file, line))
+	{
+		if (line == "date,exchange_rate" || line.empty()
+			|| line.find_first_not_of(" \t") == std::string::npos)
+			continue;
 		parse_data_line(line);
+	}
 }
 
 void	BitcoinExchange::parse_data_line(const std::string &line)
@@ -98,6 +103,8 @@ void	BitcoinExchange::parse_data_line(const std::string &line)
 void	BitcoinExchange::read_input()
 {
 	std::string	line;
+	std::string	date;
+	double		value;
 
 	while (std::getline(file, line))
 	{
@@ -107,8 +114,8 @@ void	BitcoinExchange::read_input()
 		try
 		{
 			check_line_format(line);
-			parse_input_line(line);
-			output_results();
+			parse_input_line(line, date, value);
+			output_results(date, value);
 		}
 		catch (const std::exception &e)
 		{
@@ -178,17 +185,23 @@ void	BitcoinExchange::check_value(const std::string &line)
 		throw BitcoinExchange::TooLargeNumberException();
 }
 
-void	BitcoinExchange::parse_input_line(const std::string &line)
+void	BitcoinExchange::parse_input_line(const std::string &line, std::string &date, double &value)
 {
-	input_data[line.substr(0, 10)] = strtod(line.c_str() + 13, NULL);
+	date = line.substr(0, 10);
+	value = strtod(line.c_str() + 13, NULL);
 }
 
-void	BitcoinExchange::output_results()
+void	BitcoinExchange::output_results(const std::string &date, double value)
 {
-	input_it = --input_data.end();
-	database_it = data.lower_bound(input_it->first);
+	database_it = data.lower_bound(date);
 	if (database_it == data.end())
 		database_it = --data.end();
+	else if (database_it->first != date)
+	{
+		if (database_it == data.begin())
+			throw BitcoinExchange::BadInputException(date);
+		--database_it;
+	}
 
-	std::cout << input_it->first << " => " << input_it->second << " = " << input_it->second * database_it->second << std::endl;
+	std::cout << date << " => " << value << " = " << value * database_it->second << std::endl;
 }

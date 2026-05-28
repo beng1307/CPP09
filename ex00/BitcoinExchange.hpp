@@ -6,7 +6,7 @@
 /*   By: bgretic <bgretic@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/28 18:45:54 by bgretic           #+#    #+#             */
-/*   Updated: 2026/05/28 18:45:55 by bgretic          ###   ########.fr       */
+/*   Updated: 2026/05/28 19:28:00 by bgretic          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,10 +84,10 @@ class BitcoinExchange
 		void	check_date(const std::string &line);
 		void	check_delimeter(const std::string &line);
 
-		void	parse_input_line(const std::string &line);
+		void	parse_input_line(const std::string &line, std::string &date, double &value);
 		void	parse_data_line(const std::string &line);
 		
-		void	output_results();
+		void	output_results(const std::string &date, double value);
 
 	public:
 		
