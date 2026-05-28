@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   PmergeMe.cpp                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: bgretic <bgretic@student.42vienna.com>     +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/05/28 18:45:21 by bgretic           #+#    #+#             */
+/*   Updated: 2026/05/28 18:45:22 by bgretic          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "PmergeMe.hpp"
 #include <iostream>
 #include <cstdlib>
@@ -79,12 +91,14 @@ PmergeMe::~PmergeMe()
 ///////////////////////////////////////////////////////////////////////////////
 // Handling Input
 
+//Handles input
 void	PmergeMe::handle_input()
 {
 	check_input();
 	parse_input();
 }
 
+//Checks if there are only numbers
 void	PmergeMe::check_input()
 {
 	for (size_t index = 0; index < count; index++)
@@ -94,6 +108,7 @@ void	PmergeMe::check_input()
 	}
 }
 
+//Parses the input as pairs and if theres a straggler it also gets set
 void	PmergeMe::parse_input()
 {
 	if (!count)
@@ -126,7 +141,8 @@ void	PmergeMe::parse_input()
 ///////////////////////////////////////////////////////////////////////////////
 // Helpers for Sorting
 
-static bool	compare_pairs_by_second(const IntPair &left, const IntPair &right)
+//The rule for sorting the pairs for std::sort
+bool	PmergeMe::compare_pairs_by_second(const IntPair &left, const IntPair &right)
 {
 	if (left.second == right.second)
 		return (left.first < right.first);
@@ -134,8 +150,9 @@ static bool	compare_pairs_by_second(const IntPair &left, const IntPair &right)
 	return (left.second < right.second);
 }
 
+//It sorts the numbers in pairs and sorts the pairs after
 template <typename PairContainer>
-static void	normalize_and_sort_pairs(PairContainer &pairs)
+void	PmergeMe::sort_pairs(PairContainer &pairs)
 {
 	for (size_t index = 0; index < pairs.size(); ++index)
 	{
@@ -146,10 +163,11 @@ static void	normalize_and_sort_pairs(PairContainer &pairs)
 	std::sort(pairs.begin(), pairs.end(), compare_pairs_by_second);
 }
 
-template <typename MainContainer, typename PairContainer>
-static MainContainer	create_main_chain_from_pairs(const PairContainer &pairs)
+//All the bigger values of the pairs become the mainchain 
+template <typename Container, typename PairContainer>
+Container	PmergeMe::create_main_chain_from_pairs(const PairContainer &pairs)
 {
-	MainContainer main_chain;
+	Container main_chain;
 
 	if (pairs.empty())
 		return (main_chain);
@@ -161,6 +179,7 @@ static MainContainer	create_main_chain_from_pairs(const PairContainer &pairs)
 	return (main_chain);
 }
 
+// It returns the Jacobsthal Order needed to determine which pending numbers have to be sortet next
 std::vector<size_t>	PmergeMe::get_jacobsthal_order(size_t pending_count)
 {
 	std::vector<size_t> order;
@@ -189,20 +208,23 @@ std::vector<size_t>	PmergeMe::get_jacobsthal_order(size_t pending_count)
 	return (order);
 }
 
-static void	shift_partner_positions(std::vector<size_t> &partner_positions, size_t insert_position)
+//It updates the positions after inserting 
+void	PmergeMe::update_partner_positions(std::vector<size_t> &partner_positions, size_t insert_position)
 {
-	for (size_t pos_index = 0; pos_index < partner_positions.size(); ++pos_index)
+	for (size_t index = 0; index < partner_positions.size(); ++index)
 	{
-		if (partner_positions[pos_index] >= insert_position)
-			partner_positions[pos_index]++;
+		if (partner_positions[index] >= insert_position)
+			partner_positions[index]++;
 	}
 }
 
+//Sorting Logic behind the Ford-Johnson
 template <typename MainContainer, typename PairContainer>
-static void	binary_insert_pending(MainContainer &main_chain,
-	const PairContainer &pairs, size_t count, int straggler,
+void	PmergeMe::binary_insert_pending(MainContainer &main_chain, const PairContainer &pairs,
 	const std::vector<size_t> &order)
 {
+	//If there are not enough pairs to sort, the straggler gets inserted
+	//in the right place if there is one
 	if (pairs.size() < 2)
 	{
 		if (count % 2)
@@ -212,22 +234,27 @@ static void	binary_insert_pending(MainContainer &main_chain,
 		}
 		return ;
 	}
-	
+
+	//Makes a vektor with the positions 1, 2, 3...
 	std::vector<size_t> partner_positions(pairs.size());
 	for (size_t index = 0; index < pairs.size(); ++index)
 		partner_positions[index] = index + 1;
-	
-	for (size_t step = 0; step < order.size(); ++step)
+
+	//Iterates through the Jacobsthal order and inserts the pendings into the mainchain
+	for (size_t index = 0; index < order.size(); ++index)
 	{
-		size_t pair_index = order[step];
-		size_t partner_pos = partner_positions[pair_index];
-		typename MainContainer::iterator bound = main_chain.begin() + partner_pos;
-		typename MainContainer::iterator it = std::lower_bound(main_chain.begin(), bound, pairs[pair_index].first);
-		size_t insert_pos = std::distance(main_chain.begin(), it);
-		
-		main_chain.insert(it, pairs[pair_index].first);
-		shift_partner_positions(partner_positions, insert_pos);
+		//Bound is the upper searching bound
+		typename MainContainer::iterator bound = main_chain.begin() + partner_positions[order[index]];
+
+		//It gets the right position for inserting 
+		typename MainContainer::iterator it = std::lower_bound(main_chain.begin(), bound, pairs[order[index]].first);
+		size_t insert_position = std::distance(main_chain.begin(), it);
+
+		//Inserts the number that has to be inserted and shifts the 
+		main_chain.insert(it, pairs[order[index]].first);
+		update_partner_positions(partner_positions, insert_position);
 	}
+	// If there is a straggler afterwards, it gets inserted
 	if (count % 2)
 	{
 		typename MainContainer::iterator it = std::lower_bound(main_chain.begin(), main_chain.end(), straggler);
@@ -237,14 +264,17 @@ static void	binary_insert_pending(MainContainer &main_chain,
 	
 ///////////////////////////////////////////////////////////////////////////////
 // Sorting
-	
+
+//Starts the sorting and counts time
 void	PmergeMe::sort()
 {
+	//Vector
 	clock_t start = clock();
 	sort_vector();
 	clock_t end = clock();
 	vector_time = static_cast<double>(end - start) * 1000000.0 / CLOCKS_PER_SEC;
 	
+	//Deque
 	start = clock();
 	sort_deque();
 	end = clock();
@@ -256,16 +286,11 @@ void	PmergeMe::sort()
 
 void	PmergeMe::sort_vector()
 {
-	sort_pairs_vector();
+	sort_pairs(vector);
 
 	main_chain_vector = create_main_chain_vector();
 
 	binary_insertion_vector();
-}
-
-void	PmergeMe::sort_pairs_vector()
-{
-	normalize_and_sort_pairs(vector);
 }
 
 Vector	PmergeMe::create_main_chain_vector()
@@ -280,8 +305,7 @@ void	PmergeMe::binary_insertion_vector()
 	if (!vector.empty())
 		pending_count = vector.size() - 1;
 
-	binary_insert_pending(main_chain_vector, vector, count, straggler,
-		get_jacobsthal_order(pending_count));
+	binary_insert_pending(main_chain_vector, vector, get_jacobsthal_order(pending_count));
 }
 
 
@@ -290,16 +314,11 @@ void	PmergeMe::binary_insertion_vector()
 
 void	PmergeMe::sort_deque()
 {
-	sort_pairs_deque();
+	sort_pairs(deque);
 
 	main_chain_deque = create_main_chain_deque();
 
 	binary_insertion_deque();
-}
-
-void	PmergeMe::sort_pairs_deque()
-{
-	normalize_and_sort_pairs(deque);
 }
 
 Deque	PmergeMe::create_main_chain_deque()
@@ -314,8 +333,7 @@ void	PmergeMe::binary_insertion_deque()
 	if (!deque.empty())
 		pending_count = deque.size() - 1;
 
-	binary_insert_pending(main_chain_deque, deque, count, straggler,
-		get_jacobsthal_order(pending_count));
+	binary_insert_pending(main_chain_deque, deque, get_jacobsthal_order(pending_count));
 }
 
 
@@ -324,6 +342,7 @@ void	PmergeMe::binary_insertion_deque()
 
 void	PmergeMe::print_result()
 {
+	//Prints the the numbers before and after sorting
 	std::cout << "Before: ";
 	for (size_t index = 0; index < count; index++)
 		std::cout << input[index] << " ";
@@ -334,7 +353,7 @@ void	PmergeMe::print_result()
 		std::cout << main_chain_vector[index] << " ";
 	std::cout << std::endl;
 	
-	
+	//Prints the time needed for sorting
 	std::cout << "Time to process a range of " << count << " elements with std::vector : "
 	<< vector_time << " us" << std::endl;
 	
@@ -343,6 +362,7 @@ void	PmergeMe::print_result()
 	
 }
 
+//Error printing and exiting
 void	print_error(std::string message)
 {
 	std::cerr << "Error: " << message << std::endl;

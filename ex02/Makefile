@@ -1,4 +1,4 @@
-COMPILE = c++ -g -Wall -Wextra -Werror -std=c++98 -fPIE
+COMPILE = c++ -Wall -Wextra -Werror -std=c++98
 NAME = PmergeMe
 SRCS = main.cpp PmergeMe.cpp
 OBJS_FOLDER = obj

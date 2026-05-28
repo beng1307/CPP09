@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   PmergeMe.hpp                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: bgretic <bgretic@student.42vienna.com>     +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/05/28 18:45:29 by bgretic           #+#    #+#             */
+/*   Updated: 2026/05/28 18:45:30 by bgretic          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #ifndef PMERGEME_HPP
 # define PMERGEME_HPP
 
@@ -20,46 +32,54 @@ class PmergeMe
 
 	// Variables
 
-		std::string	*input;
-		size_t		count;
+		std::string				*input;
+		size_t					count;
 	
-		Vector		main_chain_vector;
-		Deque		main_chain_deque;
+		Vector					main_chain_vector;
+		Deque					main_chain_deque;
 		
-		PairVector	vector;
-		double		vector_time;
+		PairVector				vector;
+		double					vector_time;
 		
-		PairDeque	deque;
-		double		deque_time;
+		PairDeque				deque;
+		double					deque_time;
 		
-		int			straggler;
+		int						straggler;
 
 	// Input Handling
 		
-		void		check_input();
-		void		parse_input();
+		void					check_input();
+		void					parse_input();
 
-	//Helper
+	//Helper and sorting
 
-		std::vector<size_t>	get_jacobsthal_order(size_t pending_count);
+		std::vector<size_t>		get_jacobsthal_order(size_t pending_count);
+		static bool				compare_pairs_by_second(const IntPair &left, const IntPair &right);
+		
+		template <typename PairContainer>
+		void					sort_pairs(PairContainer &pairs);
+		
+		template <typename Container, typename PairContainer>
+		Container				create_main_chain_from_pairs(const PairContainer &pairs);
+		
+		void					update_partner_positions(std::vector<size_t> &partner_positions,
+									size_t insert_position);
+		
+		template <typename MainContainer, typename PairContainer>
+		void					binary_insert_pending(MainContainer &main_chain, const PairContainer &pairs,
+									const std::vector<size_t> &order);
 
 	// Vector Sorting
 
-		void		sort_pairs_vector();
-		void		sort_vector();
-		Vector		create_main_chain_vector();
-		Vector		sort_main_chain_vector(Vector &main_chain);
-		bool		is_sorted_vector(const Vector &vec);
-		void 		binary_insertion_vector();
+		void					sort_vector();
+		Vector					create_main_chain_vector();
+		void 					binary_insertion_vector();
 	
 	// Deque Sorting
 
-		void		sort_deque();
-		void		sort_pairs_deque();
-		Deque		create_main_chain_deque();
-		Deque		sort_main_chain_deque(Deque &mainChain);
-		bool		is_sorted_deque(const Deque &deq);
-		void		binary_insertion_deque();
+		void					sort_deque();
+		Deque					create_main_chain_deque();
+		void					binary_insertion_deque();
 
 	public:
 
@@ -73,11 +93,11 @@ class PmergeMe
 
 	// Public Functions
 
-		void		handle_input();
-		void		sort();
-		void		print_result();
+		void					handle_input();
+		void					sort();
+		void					print_result();
 };
 
-	void		print_error(std::string message);
+		void					print_error(std::string message);
 
 #endif
