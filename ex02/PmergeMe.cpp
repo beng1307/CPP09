@@ -29,12 +29,12 @@ PmergeMe::PmergeMe(char **av):
 	straggler(0)
 {
 	for (size_t index = 1; av[index] != NULL; index++)
-	count++;
+		count++;
 	
 	input = new std::string[count];
 	
 	for (size_t index = 0; 	index < count; index++)
-	input[index] = av[index + 1];
+		input[index] = av[index + 1];
 }
 
 PmergeMe::PmergeMe(const PmergeMe &other):
@@ -46,7 +46,7 @@ PmergeMe::PmergeMe(const PmergeMe &other):
 {
 	input = new std::string[count];
 	for (size_t index = 0; index < count; index++)
-	input[index] = other.input[index];
+		input[index] = other.input[index];
 }
 
 PmergeMe &PmergeMe::operator=(const PmergeMe &other)
@@ -56,7 +56,7 @@ PmergeMe &PmergeMe::operator=(const PmergeMe &other)
 		delete[] input;
 		input = new std::string[other.count];
 		for (size_t index = 0; index < other.count; index++)
-		input[index] = other.input[index];
+			input[index] = other.input[index];
 		this->count = other.count;			
 		this->main_chain_vector = other.main_chain_vector;
 		this->main_chain_deque = other.main_chain_deque;
