@@ -30,54 +30,6 @@ class BitcoinExchange
 		
 		std::ifstream							file;
 
-		class NegativeValueException : public std::exception
-		{
-			public:
-
-				virtual const char	*what() const throw()
-				{
-					return "not a positive number.";
-				}
-		};
-
-		class BadInputException : public std::exception
-		{
-			private:
-
-				std::string	message;
-
-			public:
-
-				virtual ~BadInputException() throw() {}
-				BadInputException() : message("bad input.") {}
-				BadInputException(const std::string &line) : message("bad input => " + line) {}
-
-				virtual const char	*what() const throw()
-				{
-					return message.c_str();
-				}
-		};
-
-		class TooLargeNumberException : public std::exception
-		{
-			public:
-
-				virtual const char	*what() const throw()
-				{
-					return "too large a number.";
-				}
-		};
-
-		class InvalidDateFormatException : public std::exception
-		{
-			public:
-
-				virtual const char	*what() const throw()
-				{
-					return "invalid date format.";
-				}
-		};
-		
 
 		void	check_line_format(const std::string &line);
 		void	check_value(const std::string &line);
@@ -89,18 +41,55 @@ class BitcoinExchange
 		
 		void	output_results(const std::string &date, double value);
 
+
 	public:
-		
+	
 		BitcoinExchange();
 		BitcoinExchange(const BitcoinExchange &other);
 		BitcoinExchange &operator=(const BitcoinExchange &other);
 		~BitcoinExchange();
-
-
+	
+	
 		void	check_ac(int &ac);
 		void	open_file(const std::string &filename);
 		void	read_input();
 		void	read_database();
+
+		
+		class NegativeValueException: public std::exception
+		{
+			public:
+
+				virtual const char	*what() const throw();
+		};
+		
+		class BadInputException: public std::exception
+		{
+			private:
+
+				std::string	message;
+				
+			public:
+
+				BadInputException();
+				BadInputException(const std::string &line);
+				virtual ~BadInputException() throw();
+				virtual const char	*what() const throw();
+		};
+		
+		class TooLargeNumberException: public std::exception
+		{
+			public:
+
+				virtual const char	*what() const throw();
+		};
+		
+		class InvalidDateFormatException: public std::exception
+		{
+			public:
+
+				virtual const char	*what() const throw();
+		};
 	};
 
 #endif

@@ -15,6 +15,7 @@
 #include <fstream>
 #include <cstdlib>
 #include <cerrno>
+#include <string>
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -45,6 +46,43 @@ BitcoinExchange::~BitcoinExchange()
 	return ;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+//	Exceptions
+
+const char	*BitcoinExchange::NegativeValueException::what() const throw()
+{
+	return "not a positive number.";
+}
+
+BitcoinExchange::BadInputException::BadInputException(): message("bad input.")
+{
+	return ;
+}
+
+BitcoinExchange::BadInputException::BadInputException(const std::string &line): message("bad input => " + line)
+{
+	return ;
+}
+
+BitcoinExchange::BadInputException::~BadInputException() throw()
+{
+	return ;
+}
+
+const char	*BitcoinExchange::BadInputException::what() const throw()
+{
+	return message.c_str();
+}
+
+const char	*BitcoinExchange::TooLargeNumberException::what() const throw()
+{
+	return "too large a number.";
+}
+
+const char	*BitcoinExchange::InvalidDateFormatException::what() const throw()
+{
+	return "invalid date format.";
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 //	Member functions
@@ -158,12 +196,17 @@ void	BitcoinExchange::check_date(const std::string &line)
 	int	day_value = std::atoi(day.c_str());
 	int days_in_month[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
+	
 	if (year_value < 1 || year_value > 9999)
 		throw BitcoinExchange::InvalidDateFormatException();
 	if (month_value < 1 || month_value > 12)
 		throw BitcoinExchange::InvalidDateFormatException();
 	if (day_value < 1 || day_value > days_in_month[month_value - 1])
 		throw BitcoinExchange::InvalidDateFormatException();
+
+	if ((year_value % 4 == 0 && year_value % 100 != 0) || (year_value % 400 == 0))
+		days_in_month[1] = 29;
+
 }
 
 void	BitcoinExchange::check_delimeter(const std::string &line)

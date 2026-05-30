@@ -15,6 +15,7 @@
 #include <cctype>
 #include <iostream>
 #include <cstdlib>
+#include <climits>
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -46,9 +47,43 @@ RPN::~RPN()
 ///////////////////////////////////////////////////////////////////////////////
 // Calculation
 
+int	RPN::safe_calculation(int a, int b, char operator)
+{
+	long long	result;
+
+	if (operator == '+')
+	{
+		result = static_cast<long long>(a) + static_cast<long long>(b);
+		if (result < INT_MIN || result > INT_MAX)
+			error();
+	}
+	else if (operator == '-')
+	{
+		result = static_cast<long long>(a) - static_cast<long long>(b);
+		if (result < INT_MIN || result > INT_MAX)
+			error();
+	}
+	else if (operator == '*')
+	{
+		result = static_cast<long long>(a) * static_cast<long long>(b);
+		if (result < INT_MIN || result > INT_MAX)
+			error();
+	}
+	else if (operator == '/')
+	{
+		if (b == 0)
+			error();
+		result = a / b;
+	}
+	else
+		error();
+
+	return (static_cast<int>(result));
+}
+
 void	RPN::calculate()
 {
-	int	a, b = 0;
+	int			a, b = 0;
 
 	for (size_t i = 0; i < input.length(); ++i)
 	{
@@ -58,27 +93,8 @@ void	RPN::calculate()
 			rpn.push_back(input[i] - '0');
 		else if (is_operand(input[i]))
 		{
-			switch (input[i])
-			{
-				case '+':
-					last_two_numbers(a, b);
-					rpn.push_back(a + b);
-					break ;
-				case '-':
-					last_two_numbers(a, b);
-					rpn.push_back(a - b);
-					break ;
-				case '*':
-					last_two_numbers(a, b);
-					rpn.push_back(a * b);
-					break ;
-				case '/':
-					last_two_numbers(a, b);
-					if (b == 0)
-						error();
-					rpn.push_back(a / b);
-					break ;
-			}
+			last_two_numbers(a, b);
+			rpn.push_back(safe_calculation(a, b, input[i]));
 		}
 		else
 			error();

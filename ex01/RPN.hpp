@@ -24,6 +24,7 @@ class	RPN
 		std::string		input;
 		
 		void	last_two_numbers(int &a, int &b);
+		int		safe_calculation(int a, int b, char operator);
 		bool	is_operand(char c);
 		void	error();
 		
