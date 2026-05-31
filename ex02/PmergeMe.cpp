@@ -19,6 +19,21 @@
 #include <iterator>
 #include <vector>
 
+size_t PmergeMe::comparisons = 0;
+
+struct CountingComparator
+{
+    size_t	&counter;
+
+    CountingComparator(size_t& c) : counter(c) {}
+
+    bool operator()(int a, int b)
+    {
+        ++counter;
+        return a < b;
+    }
+};
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // Constructors and Destructor
@@ -141,42 +156,72 @@ void	PmergeMe::parse_input()
 ///////////////////////////////////////////////////////////////////////////////
 // Helpers for Sorting
 
-//The rule for sorting the pairs for std::sort
-bool	PmergeMe::compare_pairs_by_second(const IntPair &left, const IntPair &right)
+template <typename PairContainer>
+void PmergeMe::recursive_pair_sort(PairContainer &pairs)
 {
-	if (left.second == right.second)
-		return (left.first < right.first);
+	if (pairs.size() <= 1)
+		return;
+	
+    size_t middle_index = pairs.size() / 2;
 
-	return (left.second < right.second);
+    PairContainer left_half;
+    PairContainer right_half;
+	
+    for (size_t index = 0; index < middle_index; ++index)
+		left_half.push_back(pairs[index]);
+	
+    for (size_t index = middle_index; index < pairs.size(); ++index)
+		right_half.push_back(pairs[index]);
+	
+    recursive_pair_sort(left_half);
+    recursive_pair_sort(right_half);
+	
+    pairs.clear();
+
+    typename PairContainer::iterator left_iterator = left_half.begin();
+    typename PairContainer::iterator right_iterator = right_half.begin();
+	
+    while (left_iterator != left_half.end() && right_iterator != right_half.end())
+    {
+		comparisons++;
+		
+        if (left_iterator->second < right_iterator->second)
+        {
+			pairs.push_back(*left_iterator);
+            ++left_iterator;
+        }
+        else
+        {
+			pairs.push_back(*right_iterator);
+            ++right_iterator;
+        }
+    }
+	
+    while (left_iterator != left_half.end())
+    {
+		pairs.push_back(*left_iterator);
+        ++left_iterator;
+    }
+	
+    while (right_iterator != right_half.end())
+    {
+		pairs.push_back(*right_iterator);
+        ++right_iterator;
+    }
 }
 
-//It sorts the numbers in pairs and sorts the pairs after
 template <typename PairContainer>
-void	PmergeMe::sort_pairs(PairContainer &pairs)
+void PmergeMe::sort_pairs(PairContainer &pairs)
 {
 	for (size_t index = 0; index < pairs.size(); ++index)
 	{
+		comparisons++;
+
 		if (pairs[index].first > pairs[index].second)
 			std::swap(pairs[index].first, pairs[index].second);
 	}
 
-	std::sort(pairs.begin(), pairs.end(), compare_pairs_by_second);
-}
-
-//All the bigger values of the pairs become the mainchain 
-template <typename Container, typename PairContainer>
-Container	PmergeMe::create_main_chain_from_pairs(const PairContainer &pairs)
-{
-	Container main_chain;
-
-	if (pairs.empty())
-		return (main_chain);
-
-	main_chain.push_back(pairs[0].first);
-	for (size_t index = 0; index < pairs.size(); ++index)
-		main_chain.push_back(pairs[index].second);
-
-	return (main_chain);
+	recursive_pair_sort(pairs);
 }
 
 // It returns the Jacobsthal Order needed to determine which pending numbers have to be sortet next
@@ -195,7 +240,7 @@ std::vector<size_t>	PmergeMe::get_jacobsthal_order(size_t pending_count)
 	while (jacob <= pending_count)
 	{
 		for (size_t index = jacob; index > prev; index--)
-			order.push_back(index);
+		order.push_back(index);
 		
 		prev = jacob;
 		next = jacob + (2 * jacob_prev);
@@ -208,77 +253,98 @@ std::vector<size_t>	PmergeMe::get_jacobsthal_order(size_t pending_count)
 	return (order);
 }
 
-//It updates the positions after inserting 
-void	PmergeMe::update_partner_positions(std::vector<size_t> &partner_positions, size_t insert_position)
-{
-	for (size_t index = 0; index < partner_positions.size(); ++index)
-	{
-		if (partner_positions[index] >= insert_position)
-			partner_positions[index]++;
-	}
-}
-
 //Sorting Logic behind the Ford-Johnson
 template <typename MainContainer, typename PairContainer>
-void	PmergeMe::binary_insert_pending(MainContainer &main_chain, const PairContainer &pairs,
-	const std::vector<size_t> &order)
-{
-	//If there are not enough pairs to sort, the straggler gets inserted
-	//in the right place if there is one
-	if (pairs.size() < 2)
+void PmergeMe::binary_insert_pending(
+	MainContainer &main_chain,
+    const PairContainer &pairs,
+    const std::vector<size_t> &jacobsthal_insertion_order)
 	{
-		if (count % 2)
+		std::vector<size_t> partner_positions(pairs.size());
+		
+		for (size_t index = 0; index < pairs.size(); ++index)
+        	partner_positions[index] = index + 1;
+		
+		for (size_t order_index = 0; order_index < jacobsthal_insertion_order.size(); ++order_index)
 		{
-			typename MainContainer::iterator it = std::lower_bound(main_chain.begin(), main_chain.end(), straggler);
-			main_chain.insert(it, straggler);
-		}
-		return ;
-	}
-
-	//Makes a vektor with the positions 1, 2, 3...
-	std::vector<size_t> partner_positions(pairs.size());
-	for (size_t index = 0; index < pairs.size(); ++index)
-		partner_positions[index] = index + 1;
-
-	//Iterates through the Jacobsthal order and inserts the pendings into the mainchain
-	for (size_t index = 0; index < order.size(); ++index)
-	{
-		//Bound is the upper searching bound
-		typename MainContainer::iterator bound = main_chain.begin() + partner_positions[order[index]];
-
-		//It gets the right position for inserting 
-		typename MainContainer::iterator it = std::lower_bound(main_chain.begin(), bound, pairs[order[index]].first);
-		size_t insert_position = std::distance(main_chain.begin(), it);
-
-		//Inserts the number that has to be inserted and shifts the 
-		main_chain.insert(it, pairs[order[index]].first);
-		update_partner_positions(partner_positions, insert_position);
-	}
-	// If there is a straggler afterwards, it gets inserted
-	if (count % 2)
-	{
-		typename MainContainer::iterator it = std::lower_bound(main_chain.begin(), main_chain.end(), straggler);
-		main_chain.insert(it, straggler);
+			size_t pair_index = jacobsthal_insertion_order[order_index];
+			
+			if (pair_index >= pairs.size())
+            	continue;
+			
+			typename MainContainer::iterator insertion_upper_bound =
+            main_chain.begin() + partner_positions[pair_index];
+			
+			typename MainContainer::iterator insertion_position =
+            std::lower_bound(
+				main_chain.begin(),
+                insertion_upper_bound,
+                pairs[pair_index].first,
+                CountingComparator(comparisons)
+            );
+			
+			size_t inserted_at_index = std::distance(main_chain.begin(), insertion_position);
+			
+			main_chain.insert(insertion_position, pairs[pair_index].first);
+			
+			for (size_t update_index = 0; update_index < partner_positions.size(); ++update_index)
+			{
+				if (partner_positions[update_index] >= inserted_at_index)
+					partner_positions[update_index]++;
+			}
+    }
+	
+    if (count % 2)
+    {
+		typename MainContainer::iterator insertion_position =
+		std::lower_bound(
+			main_chain.begin(),
+			main_chain.end(),
+			straggler,
+			CountingComparator(comparisons)
+        );
+			
+		main_chain.insert(insertion_position, straggler);
 	}
 }
 	
-///////////////////////////////////////////////////////////////////////////////
-// Sorting
-
-//Starts the sorting and counts time
-void	PmergeMe::sort()
-{
-	//Vector
-	clock_t start = clock();
-	sort_vector();
-	clock_t end = clock();
-	vector_time = static_cast<double>(end - start) * 1000000.0 / CLOCKS_PER_SEC;
+	//All the bigger values of the pairs become the mainchain 
+	template <typename Container, typename PairContainer>
+	Container	PmergeMe::create_main_chain_from_pairs(const PairContainer &pairs)
+	{
+		Container main_chain;
 	
+		if (pairs.empty())
+			return (main_chain);
+	
+		main_chain.push_back(pairs[0].first);
+		for (size_t index = 0; index < pairs.size(); ++index)
+			main_chain.push_back(pairs[index].second);
+	
+		return (main_chain);
+	}
+
+	///////////////////////////////////////////////////////////////////////////////
+	// Sorting
+	
+	//Starts the sorting and counts time
+	void	PmergeMe::sort()
+	{
+		//Vector
+		clock_t start = clock();
+		sort_vector();
+		clock_t end = clock();
+		vector_time = static_cast<double>(end - start) * 1000000.0 / CLOCKS_PER_SEC;
+		std::cout << comparisons << " comparisons" << std::endl;
+
+	comparisons = 0;
+
 	//Deque
 	start = clock();
 	sort_deque();
 	end = clock();
 	deque_time = static_cast<double>(end - start) * 1000000.0 / CLOCKS_PER_SEC;
+	std::cout << comparisons << " comparisons" << std::endl;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -355,10 +421,10 @@ void	PmergeMe::print_result()
 	
 	//Prints the time needed for sorting
 	std::cout << "Time to process a range of " << count << " elements with std::vector : "
-	<< vector_time << " us" << std::endl;
+		<< vector_time << " us" << std::endl;
 	
 	std::cout << "Time to process a range of " << count << " elements with std::deque : "
-	<< deque_time << " us" << std::endl;
+		<< deque_time << " us" << std::endl;
 	
 }
 

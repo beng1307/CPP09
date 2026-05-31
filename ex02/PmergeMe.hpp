@@ -29,75 +29,80 @@ typedef std::deque<IntPair>		PairDeque;
 class PmergeMe
 {
 	private:
-
-	// Variables
-
+	
+		// Variables
+	
 		std::string				*input;
 		size_t					count;
 	
 		Vector					main_chain_vector;
 		Deque					main_chain_deque;
-		
+	
 		PairVector				vector;
 		double					vector_time;
-		
+	
 		PairDeque				deque;
 		double					deque_time;
-		
+	
 		int						straggler;
-
-	// Input Handling
-		
+	
+		// Input Handling
+	
 		void					check_input();
 		void					parse_input();
-
-	//Helper and sorting
-
+	
+		//Helper and sorting
+	
 		std::vector<size_t>		get_jacobsthal_order(size_t pending_count);
-		static bool				compare_pairs_by_second(const IntPair &left, const IntPair &right);
+
+		template <typename PairContainer>
+		void					recursive_pair_sort(PairContainer &pairs);
 		
 		template <typename PairContainer>
 		void					sort_pairs(PairContainer &pairs);
-		
+	
 		template <typename Container, typename PairContainer>
 		Container				create_main_chain_from_pairs(const PairContainer &pairs);
-		
-		void					update_partner_positions(std::vector<size_t> &partner_positions,
-									size_t insert_position);
+
 		
 		template <typename MainContainer, typename PairContainer>
 		void					binary_insert_pending(MainContainer &main_chain, const PairContainer &pairs,
 									const std::vector<size_t> &order);
-
-	// Vector Sorting
-
+			
+		// Vector Sorting
+			
 		void					sort_vector();
 		Vector					create_main_chain_vector();
 		void 					binary_insertion_vector();
-	
-	// Deque Sorting
-
+			
+		// Deque Sorting
+			
 		void					sort_deque();
 		Deque					create_main_chain_deque();
 		void					binary_insertion_deque();
-
+			
 	public:
-
-	// Constuctors, Destructor, Assignment Operator
-
+			
+		// Constuctors, Destructor, Assignment Operator
+			
 		PmergeMe();
 		PmergeMe(char **av);
 		PmergeMe(const PmergeMe &other);
 		PmergeMe &operator=(const PmergeMe &other);
 		~PmergeMe();
-
-	// Public Functions
-
+			
+		// Public Functions
+			
 		void					handle_input();
 		void					sort();
 		void					print_result();
+
+		// Comparison counter
+
+		static size_t comparisons;
+
 };
-
-		void					print_error(std::string message);
-
+		
+	void					print_error(std::string message);
+		
 #endif
