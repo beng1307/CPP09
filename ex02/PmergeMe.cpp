@@ -259,39 +259,39 @@ void PmergeMe::binary_insert_pending(
 	MainContainer &main_chain,
     const PairContainer &pairs,
     const std::vector<size_t> &jacobsthal_insertion_order)
-	{
-		std::vector<size_t> partner_positions(pairs.size());
+{
+	std::vector<size_t> partner_positions(pairs.size());
 		
-		for (size_t index = 0; index < pairs.size(); ++index)
+	for (size_t index = 0; index < pairs.size(); ++index)
         	partner_positions[index] = index + 1;
 		
-		for (size_t order_index = 0; order_index < jacobsthal_insertion_order.size(); ++order_index)
+	for (size_t order_index = 0; order_index < jacobsthal_insertion_order.size(); ++order_index)
+	{
+		size_t pair_index = jacobsthal_insertion_order[order_index];
+			
+		if (pair_index >= pairs.size())
+            continue;
+			
+		typename MainContainer::iterator insertion_upper_bound =
+       		main_chain.begin() + partner_positions[pair_index];
+			
+		typename MainContainer::iterator insertion_position =
+        std::lower_bound(
+			main_chain.begin(),
+            insertion_upper_bound,
+            pairs[pair_index].first,
+            CountingComparator(comparisons)
+        );
+			
+		size_t inserted_at_index = std::distance(main_chain.begin(), insertion_position);
+			
+		main_chain.insert(insertion_position, pairs[pair_index].first);
+			
+		for (size_t update_index = 0; update_index < partner_positions.size(); ++update_index)
 		{
-			size_t pair_index = jacobsthal_insertion_order[order_index];
-			
-			if (pair_index >= pairs.size())
-            	continue;
-			
-			typename MainContainer::iterator insertion_upper_bound =
-            main_chain.begin() + partner_positions[pair_index];
-			
-			typename MainContainer::iterator insertion_position =
-            std::lower_bound(
-				main_chain.begin(),
-                insertion_upper_bound,
-                pairs[pair_index].first,
-                CountingComparator(comparisons)
-            );
-			
-			size_t inserted_at_index = std::distance(main_chain.begin(), insertion_position);
-			
-			main_chain.insert(insertion_position, pairs[pair_index].first);
-			
-			for (size_t update_index = 0; update_index < partner_positions.size(); ++update_index)
-			{
-				if (partner_positions[update_index] >= inserted_at_index)
-					partner_positions[update_index]++;
-			}
+			if (partner_positions[update_index] >= inserted_at_index)
+				partner_positions[update_index]++;
+		}
     }
 	
     if (count % 2)
@@ -317,7 +317,6 @@ void PmergeMe::binary_insert_pending(
 		if (pairs.empty())
 			return (main_chain);
 	
-		main_chain.push_back(pairs[0].first);
 		for (size_t index = 0; index < pairs.size(); ++index)
 			main_chain.push_back(pairs[index].second);
 	
@@ -350,13 +349,20 @@ void PmergeMe::binary_insert_pending(
 ///////////////////////////////////////////////////////////////////////////////
 // Vector Sorting
 
-void	PmergeMe::sort_vector()
+void PmergeMe::sort_vector()
 {
-	sort_pairs(vector);
+    std::vector<int> values;
 
-	main_chain_vector = create_main_chain_vector();
+    for (size_t i = 0; i < vector.size(); ++i)
+    {
+        values.push_back(vector[i].first);
+        values.push_back(vector[i].second);
+    }
 
-	binary_insertion_vector();
+    if (count % 2)
+        values.push_back(straggler);
+
+    main_chain_vector = ford_johnson_recursive(values);
 }
 
 Vector	PmergeMe::create_main_chain_vector()
