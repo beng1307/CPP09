@@ -6,7 +6,7 @@
 /*   By: bgretic <bgretic@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/28 18:45:35 by bgretic           #+#    #+#             */
-/*   Updated: 2026/05/28 18:45:36 by bgretic          ###   ########.fr       */
+/*   Updated: 2026/06/01 14:34:08 by bgretic          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,6 @@ int	main(int ac, char **av)
 
 	PmergeMe	pmergeMe(av);
 
-	
 	pmergeMe.handle_input();
 	pmergeMe.sort();
 	pmergeMe.print_result();
