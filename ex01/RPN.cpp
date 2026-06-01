@@ -6,7 +6,7 @@
 /*   By: bgretic <bgretic@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/28 18:45:42 by bgretic           #+#    #+#             */
-/*   Updated: 2026/05/28 18:45:43 by bgretic          ###   ########.fr       */
+/*   Updated: 2026/06/01 17:52:46 by bgretic          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,29 +47,29 @@ RPN::~RPN()
 ///////////////////////////////////////////////////////////////////////////////
 // Calculation
 
-int	RPN::safe_calculation(int a, int b, char operator)
+int	RPN::safe_calculation(int a, int b, char math_operator)
 {
-	long long	result;
+	long long	result = 0;
 
-	if (operator == '+')
+	if (math_operator == '+')
 	{
 		result = static_cast<long long>(a) + static_cast<long long>(b);
 		if (result < INT_MIN || result > INT_MAX)
 			error();
 	}
-	else if (operator == '-')
+	else if (math_operator == '-')
 	{
 		result = static_cast<long long>(a) - static_cast<long long>(b);
 		if (result < INT_MIN || result > INT_MAX)
 			error();
 	}
-	else if (operator == '*')
+	else if (math_operator == '*')
 	{
 		result = static_cast<long long>(a) * static_cast<long long>(b);
 		if (result < INT_MIN || result > INT_MAX)
 			error();
 	}
-	else if (operator == '/')
+	else if (math_operator == '/')
 	{
 		if (b == 0)
 			error();

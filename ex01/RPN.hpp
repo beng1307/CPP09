@@ -6,7 +6,7 @@
 /*   By: bgretic <bgretic@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/28 18:45:39 by bgretic           #+#    #+#             */
-/*   Updated: 2026/05/28 19:03:41 by bgretic          ###   ########.fr       */
+/*   Updated: 2026/06/01 17:51:37 by bgretic          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ class	RPN
 		std::string		input;
 		
 		void	last_two_numbers(int &a, int &b);
-		int		safe_calculation(int a, int b, char operator);
+		int		safe_calculation(int a, int b, char math_operator);
 		bool	is_operand(char c);
 		void	error();
 		
