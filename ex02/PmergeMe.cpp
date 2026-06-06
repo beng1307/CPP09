@@ -39,9 +39,6 @@ struct CountingComparator
 
 namespace
 {
-	typedef std::vector<size_t>				IndexVector;
-	typedef std::vector< std::pair<size_t, size_t> >	IndexPairVector;
-
 	struct PairSecondIndexComparator
 	{
 		const std::vector<IntPair> &pairs;
@@ -55,44 +52,7 @@ namespace
 		}
 	};
 
-	IndexVector	get_jacobsthal_order_zero_based(size_t pending_count)
-	{
-		IndexVector order;
-		size_t prev = 1;
-		size_t jacob_prev = 1;
-		size_t jacob = 3;
-
-		if (pending_count == 0)
-			return (order);
-
-		while (jacob <= pending_count + 1)
-		{
-			for (size_t index = jacob; index > prev; index--)
-				order.push_back(index - 1);
-
-			size_t next_jacob = jacob + (2 * jacob_prev);
-			jacob_prev = jacob;
-			prev = jacob;
-			jacob = next_jacob;
-		}
-
-		for (size_t index = pending_count + 1; index > prev; index--)
-			order.push_back(index - 1);
-
-		return (order);
-	}
-
-	void	update_positions_index(IndexVector &positions, size_t inserted_at_index)
-	{
-		for (size_t index = 0; index < positions.size(); ++index)
-		{
-			if (positions[index] >= inserted_at_index)
-				positions[index]++;
-		}
-	}
-
-	IndexVector	ford_johnson_sort_pair_indices(const std::vector<IntPair> &pairs,
-												const IndexVector &indices)
+	IndexVector	ford_johnson_sort_pair_indices(const std::vector<IntPair> &pairs, const IndexVector &indices)
 	{
 		if (indices.size() <= 1)
 			return (indices);
@@ -155,7 +115,7 @@ namespace
 		if (has_straggler)
 			pending_count++;
 
-		IndexVector order = get_jacobsthal_order_zero_based(pending_count);
+		IndexVector order = get_jacobsthal_order(pending_count);
 		bool inserted_straggler = false;
 
 		for (size_t order_index = 0; order_index < order.size(); ++order_index)
@@ -397,35 +357,32 @@ void PmergeMe::sort_pairs(PairContainer &pairs)
 }
 
 // It returns the Jacobsthal Order needed to determine which pending numbers have to be sortet next
-std::vector<size_t>	PmergeMe::get_jacobsthal_order(size_t pending_count)
-{
-	std::vector<size_t> order;
-	size_t prev = 1;
-	size_t jacob_prev = 1;
-	size_t jacob = 3;
-	
-	if (pending_count == 0)
-		return (order);
-
-	while (jacob <= pending_count + 1)
+	IndexVector	get_jacobsthal_order(size_t pending_count)
 	{
-		for (size_t index = jacob; index > prev; index--)
+		IndexVector order;
+		size_t prev = 1;
+		size_t jacob_prev = 1;
+		size_t jacob = 3;
+
+		if (pending_count == 0)
+			return (order);
+
+		while (jacob <= pending_count + 1)
+		{
+			for (size_t index = jacob; index > prev; index--)
+				order.push_back(index - 1);
+
+			size_t next_jacob = jacob + (2 * jacob_prev);
+			jacob_prev = jacob;
+			prev = jacob;
+			jacob = next_jacob;
+		}
+
+		for (size_t index = pending_count + 1; index > prev; index--)
 			order.push_back(index - 1);
-		
-		size_t next_jacob = jacob + (2 * jacob_prev);
-		jacob_prev = jacob;
-		prev = jacob;
-		jacob = next_jacob;
+
+		return (order);
 	}
-	for (size_t index = pending_count + 1; index > prev; index--)
-		order.push_back(index - 1);
-	
-	std::cout << "Jacobsthal order: ";
-	for (size_t index = 0; index < order.size(); index++)
-		std::cout << order[index] << " ";
-	std::cout << std::endl;
-	return (order);
-}
 
 //Assigns the positions of the pairs
 template <typename PairContainer>

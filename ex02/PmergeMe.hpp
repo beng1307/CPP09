@@ -19,12 +19,13 @@
 #include <deque>
 #include <ctime>
 
-typedef std::pair<int, int>		IntPair;
-typedef std::vector<int>		Vector;
-typedef std::deque<int>			Deque;
-typedef std::vector<IntPair>	PairVector;
-typedef std::deque<IntPair>		PairDeque;
-
+typedef std::pair<int, int>						IntPair;
+typedef std::vector<int>						Vector;
+typedef std::deque<int>							Deque;
+typedef std::vector<IntPair>					PairVector;
+typedef std::deque<IntPair>						PairDeque;
+typedef std::vector<size_t>						IndexVector;
+typedef std::vector<std::pair<size_t, size_t>>	IndexPairVector;
 
 class PmergeMe
 {
