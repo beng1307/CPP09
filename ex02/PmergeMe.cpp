@@ -37,20 +37,20 @@ struct CountingComparator
     }
 };
 
-namespace
+static IndexVector get_jacobsthal_order(size_t pending_count);
+static void update_positions_index(IndexVector &positions, size_t inserted_at_index);
+
+
+struct PairSecondIndexComparator
 {
-	struct PairSecondIndexComparator
+	const std::vector<IntPair> &pairs;
+	PairSecondIndexComparator(const std::vector<IntPair> &pair_vector): pairs(pair_vector) {}
+	bool operator()(size_t left_index, size_t right_index) const
 	{
-		const std::vector<IntPair> &pairs;
-
-		PairSecondIndexComparator(const std::vector<IntPair> &pair_vector): pairs(pair_vector) {}
-
-		bool operator()(size_t left_index, size_t right_index) const
-		{
-			++PmergeMe::comparisons;
-			return (pairs[left_index].second < pairs[right_index].second);
-		}
-	};
+		++PmergeMe::comparisons;
+		return (pairs[left_index].second < pairs[right_index].second);
+	}
+};
 
 	IndexVector	ford_johnson_sort_pair_indices(const std::vector<IntPair> &pairs, const IndexVector &indices)
 	{
@@ -157,7 +157,7 @@ namespace
 
 		return (main_chain);
 	}
-}
+
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -382,6 +382,15 @@ void PmergeMe::sort_pairs(PairContainer &pairs)
 			order.push_back(index - 1);
 
 		return (order);
+	}
+
+	static void	update_positions_index(IndexVector &positions, size_t inserted_at_index)
+	{
+		for (size_t index = 0; index < positions.size(); ++index)
+		{
+			if (positions[index] >= inserted_at_index)
+				positions[index]++;
+		}
 	}
 
 //Assigns the positions of the pairs

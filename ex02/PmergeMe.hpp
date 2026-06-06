@@ -25,7 +25,7 @@ typedef std::deque<int>							Deque;
 typedef std::vector<IntPair>					PairVector;
 typedef std::deque<IntPair>						PairDeque;
 typedef std::vector<size_t>						IndexVector;
-typedef std::vector<std::pair<size_t, size_t>>	IndexPairVector;
+typedef std::vector<std::pair<size_t, size_t> >	IndexPairVector;
 
 class PmergeMe
 {
@@ -53,8 +53,6 @@ class PmergeMe
 		void					parse_input();
 	
 		//Helper and sorting
-	
-		std::vector<size_t>		get_jacobsthal_order(size_t pending_count);
 		
 		template <typename PairContainer>
 		void					fill_the_container_with_sorted_pairs(PairContainer &pairs,
