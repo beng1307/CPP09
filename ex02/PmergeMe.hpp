@@ -27,6 +27,8 @@ typedef std::deque<IntPair>						PairDeque;
 typedef std::vector<size_t>						IndexVector;
 typedef std::vector<std::pair<size_t, size_t> >	IndexPairVector;
 
+struct IndexSplitData;
+
 class PmergeMe
 {
 	private:
@@ -53,14 +55,28 @@ class PmergeMe
 		void					parse_input();
 	
 		//Helper and sorting
+
+		IndexVector				get_jacobsthal_order(size_t pending_count);
+
+		IndexVector				ford_johnson_sort_indices(const std::vector<IntPair> &pairs, const IndexVector &indices);
+
+		IndexSplitData			split_indices(const IndexVector &indices, size_t pair_count,
+								const std::vector<IntPair> &pairs);
 		
-		template <typename PairContainer>
-		void					fill_the_container_with_sorted_pairs(PairContainer &pairs,
-									PairContainer &left_half, PairContainer &right_half);
-		
+		IndexPairVector			build_ordered_pairs(const IndexVector &sorted_winners,
+								const IndexVector &loser_by_winner);
+
+		void					init_main_chain_and_positions(const IndexPairVector &ordered_pairs,
+								IndexVector &main_chain, IndexVector &positions);
+
+		void					insert_pending_indices(IndexVector &main_chain, IndexVector &positions,
+								const IndexPairVector &ordered_pairs, const IndexVector &order,
+								const std::vector<IntPair> &pairs,
+								bool has_straggler, size_t straggler);
+
 		template <typename PairContainer>
 		void					recursive_pair_sort(PairContainer &pairs);
-		
+	
 		template <typename PairContainer>
 		void					sort_pairs(PairContainer &pairs);
 	
@@ -69,8 +85,6 @@ class PmergeMe
 
 		template <typename PairContainer>
 		std::vector<size_t> 	assign_positions(PairContainer &pairs);
-
-		void					update_positions(std::vector<size_t> &positions, size_t &inserted_at_index);
 		
 		template <typename MainContainer, typename PairContainer>
 		void					binary_insert_pending(MainContainer &main_chain, const PairContainer &pairs,
@@ -103,6 +117,7 @@ class PmergeMe
 		void					handle_input();
 		void					sort();
 		void					print_result();
+		static void				update_positions(IndexVector &positions, size_t inserted_at_index);
 
 		// Comparison counter
 
