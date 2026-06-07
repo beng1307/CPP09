@@ -95,7 +95,7 @@ void	BitcoinExchange::check_ac(int &ac)
 			std::cerr << "Error: Could not open file." << std::endl;
 		else
 			std::cerr << "Too many arguments!" << std::endl;
-		exit (1);
+		throw(1);
 	}
 }
 
@@ -108,7 +108,7 @@ void	BitcoinExchange::open_file(const std::string &filename)
 	if (!file.is_open())
 	{
 		std::cerr << "Error: Could not open file." << std::endl;
-		exit (1);
+		throw(1);
 	}
 }
 

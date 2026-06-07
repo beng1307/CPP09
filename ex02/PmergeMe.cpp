@@ -19,6 +19,9 @@
 #include <iterator>
 #include <vector>
 
+///////////////////////////////////////////////////////////////////////////////
+// Constructors and Destructor
+
 //Comparison counter
 size_t PmergeMe::comparisons = 0;
 
@@ -26,21 +29,19 @@ size_t PmergeMe::comparisons = 0;
 //to count the comparisons in it
 struct CountingComparator
 {
-    size_t	&counter;
-
-    CountingComparator(size_t& c): counter(c) {}
-
-    bool operator()(int a, int b)
-    {
-        ++counter;
-        return a < b;
-    }
+	bool operator()(int left_value, int right_value) const
+	{
+		++PmergeMe::comparisons;
+		return (left_value < right_value);
+	}
 };
 
 struct PairSecondIndexComparator
 {
 	const std::vector<IntPair> &pairs;
+
 	PairSecondIndexComparator(const std::vector<IntPair> &pair_vector): pairs(pair_vector) {}
+
 	bool operator()(size_t left_index, size_t right_index) const
 	{
 		++PmergeMe::comparisons;
@@ -236,6 +237,7 @@ void	PmergeMe::update_positions(IndexVector &positions, size_t inserted_at_index
 ///////////////////////////////////////////////////////////////////////////////
 // Sorting Logic
 
+//Splits the indices into winners and losers and also sets the straggler if there is one
 IndexSplitData PmergeMe::split_indices(
 	const IndexVector &indices,
 	size_t pair_count,
@@ -270,6 +272,7 @@ IndexSplitData PmergeMe::split_indices(
 	return (split);
 }
 
+//Builds the ordered pairs for the Ford-Johnson algorithm
 IndexPairVector PmergeMe::build_ordered_pairs(
 	const IndexVector &sorted_winners,
 	const IndexVector &loser_by_winner)
@@ -286,6 +289,7 @@ IndexPairVector PmergeMe::build_ordered_pairs(
 	return (ordered_pairs);
 }
 
+//Initializes the main chain and the positions for the Ford-Johnson algorithm
 void PmergeMe::init_main_chain_and_positions(
 	const IndexPairVector &ordered_pairs,
 	IndexVector &main_chain,
@@ -305,6 +309,7 @@ void PmergeMe::init_main_chain_and_positions(
 	}
 }
 
+//Inserts the pending numbers in the right order for the Ford-Johnson algorithm
 void PmergeMe::insert_pending_indices(
 	IndexVector &main_chain,
 	IndexVector &positions,
@@ -329,7 +334,7 @@ void PmergeMe::insert_pending_indices(
 					std::lower_bound(main_chain.begin(), main_chain.end(), straggler, comparator);
 				size_t inserted_at = std::distance(main_chain.begin(), insertion_position);
 				main_chain.insert(insertion_position, straggler);
-				PmergeMe::update_positions(positions, inserted_at);
+				update_positions(positions, inserted_at);
 				inserted_straggler = true;
 			}
 			continue ;
@@ -340,7 +345,7 @@ void PmergeMe::insert_pending_indices(
 			std::lower_bound(main_chain.begin(), upper_bound, ordered_pairs[current].first, comparator);
 		size_t inserted_at = std::distance(main_chain.begin(), insertion_position);
 		main_chain.insert(insertion_position, ordered_pairs[current].first);
-		PmergeMe::update_positions(positions, inserted_at);
+		update_positions(positions, inserted_at);
 	}
 
 	if (has_straggler && !inserted_straggler)
@@ -351,6 +356,7 @@ void PmergeMe::insert_pending_indices(
 	}
 }
 
+//Sorts the indices of the pairs using the Ford-Johnson algorithm and returns the sorted indices
 IndexVector PmergeMe::ford_johnson_sort_indices(const std::vector<IntPair> &pairs, const IndexVector &indices)
 {
 	if (indices.size() <= 1)
@@ -371,11 +377,11 @@ IndexVector PmergeMe::ford_johnson_sort_indices(const std::vector<IntPair> &pair
 	IndexVector order = get_jacobsthal_order(pending_count);
 	insert_pending_indices(main_chain, positions, ordered_pairs, order, pairs,
 		split.has_straggler, split.straggler);
-
+	
 	return (main_chain);
 }
 
-//Sorts the pairs recursively using the Ford-Johnson index sorting
+//Sorts the pairs and assigns the new pair order to pairs at the end
 template <typename PairContainer>
 void PmergeMe::recursive_pair_sort(PairContainer &pairs)
 {
@@ -430,7 +436,7 @@ void PmergeMe::binary_insert_pending(
 			{
 				typename MainContainer::iterator insertion_position =
 					std::lower_bound(main_chain.begin(), main_chain.end(), straggler,
-						CountingComparator(comparisons));
+						CountingComparator());
 
 				size_t inserted_at_index = std::distance(main_chain.begin(), insertion_position);
 				main_chain.insert(insertion_position, straggler);
@@ -448,7 +454,7 @@ void PmergeMe::binary_insert_pending(
 		//Finds the right insert position for the next pending in the Jacobsthal Order
 		typename MainContainer::iterator insertion_position =
 			std::lower_bound(main_chain.begin(), insertion_upper_bound, pairs[current_pair_in_order].first,
-				CountingComparator(comparisons));
+				CountingComparator());
 		
 		//Sets the inserted index for later updating and inserts the pending in the right position
 		size_t inserted_at_index = std::distance(main_chain.begin(), insertion_position);
@@ -463,7 +469,7 @@ void PmergeMe::binary_insert_pending(
     {
 		typename MainContainer::iterator insertion_position =
 			std::lower_bound(main_chain.begin(), main_chain.end(), straggler,
-				CountingComparator(comparisons));
+				CountingComparator());
 
 		main_chain.insert(insertion_position, straggler);
 	}
@@ -585,12 +591,12 @@ void	PmergeMe::print_result()
 		std::cout << main_chain_vector[index] << " ";
 	std::cout << std::endl;
 	
-	// //Prints the time needed for sorting
-	// std::cout << "Time to process a range of " << count << " elements with std::vector : "
-	// 	<< vector_time << " us" << std::endl;
+	//Prints the time needed for sorting
+	std::cout << "Time to process a range of " << count << " elements with std::vector : "
+		<< vector_time << " us" << std::endl;
 	
-	// std::cout << "Time to process a range of " << count << " elements with std::deque : "
-	// 	<< deque_time << " us" << std::endl;
+	std::cout << "Time to process a range of " << count << " elements with std::deque : "
+		<< deque_time << " us" << std::endl;
 	
 }
 
@@ -598,5 +604,5 @@ void	PmergeMe::print_result()
 void	print_error(std::string message)
 {
 	std::cerr << "Error: " << message << std::endl;
-	exit(1);
+	throw(1);
 }

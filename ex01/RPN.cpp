@@ -145,13 +145,13 @@ void	RPN::check_ac(int &ac)
 	if (ac != 2)
 	{
 		std::cerr << "Error: Wrong amount of arguments!" << std::endl;
-		exit(1);
+		throw (1);
 	}
 }
 
 void	RPN::error()
 {
 	std::cerr << "Error" << std::endl;
-	exit(1);
+	throw (1);
 }
 

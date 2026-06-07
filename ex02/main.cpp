@@ -14,12 +14,18 @@
 
 int	main(int ac, char **av)
 {
-	if (ac < 2)
-		print_error("No input.");
+	try
+	{
+		if (ac < 2)
+			print_error("No input.");
 
-	PmergeMe	pmergeMe(av);
+		PmergeMe	pmergeMe(av);
 
-	pmergeMe.handle_input();
-	pmergeMe.sort();
-	pmergeMe.print_result();
+		pmergeMe.handle_input();
+		pmergeMe.sort();
+		pmergeMe.print_result();
+	}
+	catch(int){return (1);}
+
+	return (0);
 }
